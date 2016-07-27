@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Family Dinners</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link href="http://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBCCrTr6k4kqPHaFanWETV85itnNuVHoX8"></script>
+<script src="data.js"></script>
+<script>
+var app = angular.module('myApp', []);
+
+app.controller('myCtrl', function($scope) {
+  $scope.restaurantname = "Grammies";
+
+
+  $scope.setRestaurant = function(restInfo) {
+    $scope.restaurantname = restInfo;
+  }
+
+  // var myCenter = new google.maps.LatLng(40.012490, -75.250180);
+
+  function initialize() {
+    var map = new google.maps.Map(document.getElementById('googleMap'), {
+      zoom: 12,
+      center: {lat: 40.012, lng: -75.250}
+    });
+  
+  /*
+  var mapProp = {
+    center:myCenter,
+    zoom:9
+  };
+
+  var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
+
+  var marker = new google.maps.Marker({
+    position:myCenter,
+    title:'Home'
+  });
+
+  marker.setMap(map);
+
+  marker.addListener('click', function() {
+    //setRestaurant(marker.getTitle());
+    $scope.setRestaurant('Test');
+    
+  });
+  */
+
+    var kmlLayer = new google.maps.KmlLayer({
+      url: 'http://dogpound-env.us-west-2.elasticbeanstalk.com/restaurantplacemarks.kml',
+      suppressInfoWindows: true,
+      map: map
+    });
+
+    kmlLayer.addListener('click', function(kmlEvent) {
+      var text = kmlEvent.featureData.description;
+      showInContentWindow(text);
+    });
+
+    function showInContentWindow(text) {
+      var sidediv = document.getElementById('content-window');
+      sidediv.innerHTML = text;
+    }
+  }
+  
+  google.maps.event.addDomListener(window, 'load', initialize);
+
+});
+
+app.controller('restaurantCtrl', function($scope, $http) {
+    $http({
+        method : "GET",
+        url : "CPK.json"
+    }).then(function getSucces(response) {
+        $scope.restaurantData = response.data.name;
+    }, function getError(response) {
+        $scope.errorInfo = response.statusText;
+    });
+});
+</script>
+
+<style>
+  body {
+      font: 20px Montserrat, sans-serif;
+      line-height: 1.8;
+      color: #f5f6f7;
+  }
+  p {font-size: 16px;}
+  .margin {margin-bottom: 30px;}
+  .bg-1 {
+      background-color: #fcc48e; /* orange */
+      color: #ffffff;
+  }
+  .bg-2 {
+      background-color: #bf5e5d; /* Brick */
+      color: #ffffff;
+  }
+  .bg-3 {
+      background-color: #fff; /* White */
+      color: #555555;
+  }
+  .bg-4 {
+      background-color: #3d4f59; /* Gray */
+      color: #fff;
+  }
+  .container-fluid {
+      padding-top: 70px;
+      padding-bottom: 70px;
+  }
+  .navbar {
+      padding-top: 15px;
+      padding-bottom: 15px;
+      border: 0;
+      border-radius: 0;
+      margin-bottom: 0;
+      font-size: 12px;
+      letter-spacing: 5px;
+  }
+  .navbar-nav li a:hover {
+      color: #1abc9c !important;
+  }
+  .carousel-inner > .item > img,
+  .carousel-inner > .item > a > img {
+      width: 70%;
+      margin: auto;
+  }
+</style>
+</head>
+<body>
+
+<div ng-app="myApp">
+
+<nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Us</a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#who">WHO</a></li>
+        <li><a href="#what">WHAT</a></li>
+        <li><a href="#map">MAP</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div id="who" class="container-fluid bg-1 text-center">
+  <h3 class="margin">Family Dinners</h3>
+  <img src="logo.png" class="img-responsive img-circle" style="display:inline" alt="Us" width="300" height="350">
+  <h3>Where we eat!</h3>
+</div>
+
+<div id="what" class="container-fluid bg-2 text-center">
+  <h3 class="margin">Hart Famly Restaurant Tour</h3>
+  <p>As a family we try to eat together once a week. Unlike other families we do it at differnt restaurants.</p>
+  <a href="#map" class="btn btn-default btn-lg">
+    <span class="glyphicon glyphicon-search"></span> Find Restaurant
+  </a>
+</div>
+
+<div ng-controller="myCtrl">
+  <div id="places" class="container-fluid bg-3 text-center">
+    <button class="btn btn-default" ng-click="setRestaurant('Cal Pizza Kitchen')">CPK</button>
+    <input type="text" style="color: #000000" ng-model="restaurantname">
+    <p>{{restaurantname}}</p>
+    <div id="content-window"></div>
+  </div>
+
+  <div id="map" class="container-fluid bg-2 text-center">  
+    <div id="googleMap" style="height:400px;width:100%;"></div>
+  </div>
+</div>
+
+<div class="container-fluid bg-3 text-center" ng-controller="restaurantCtrl"> 
+  <h3 class="margin">Where we have been</h3>
+  <div class="row">
+    <div class="col-sm-5">
+        <p ng-bind="restaurantname">Restaurant Name</p>
+        <img src="IMG_9388.jpg" class="img-responsive" style="width:100%" alt="Image">
+    </div>
+    <div class="col-sm-7">
+        <p>Description of place , with date, and other information.</p>
+        <p>{{restaurantData}}</p>
+        <p>{{errorInfo}}</p>
+      </div>
+  </div>
+</div>
+
+<div class="container-fluid bg-3 text-center">
+  <p>Comment : <input type="text" style="color: #000000" ng-model="name"></p>
+  <a href="#" class="btn btn-default btn-lg">
+    <span class="glyphicon glyphicon-save"></span> Save
+  </a>
+  
+</div>
+
+<footer class="container-fluid bg-4 text-center">
+  <p>harts.info</p>
+</footer>
+
+</div>
+
+</body>
+</html>
+
